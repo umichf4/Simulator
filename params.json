@@ -5,9 +5,9 @@
     "in_num": 3,
     "out_num": 32,
     "all_num": 1000,
-    "batchsize": 50,
-    "epochs": 10,
+    "batch_size": 50,
+    "epochs": 100,
     "ratio": 0.8,
     "lr": 0.2,
-    "save_epoch": 5
+    "save_epoch": 100
 }

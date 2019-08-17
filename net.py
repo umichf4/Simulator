@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Aug 16 16:09:34 2019
+# @Author: Brandon Han
+# @Date:   2019-08-17 15:20:26
+# @Last Modified by:   Brandon Han
+# @Last Modified time: 2019-08-17 16:54:08
 
-@author: Pi
-"""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
