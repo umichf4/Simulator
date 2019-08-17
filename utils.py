@@ -2,10 +2,11 @@
 # @Author: Brandon Han
 # @Date:   2019-08-17 15:20:26
 # @Last Modified by:   Brandon Han
-# @Last Modified time: 2019-08-17 17:20:54
+# @Last Modified time: 2019-08-17 18:43:26
 import torch
 import os
 import json
+import matplotlib.pyplot as plt
 
 
 class Params():
@@ -55,10 +56,22 @@ def load_checkpoint(path, net, optimizer):
 
     state = torch.load(path)
     net.load_state_dict(state['net_state_dict'])
-    optimizer.load_state_dict(state['optim_state_dict'])
+    if optimizer is not None:
+        optimizer.load_state_dict(state['optim_state_dict'])
 
     print('Model loaded')
 
 
 def make_figure_dir():
     os.makedirs('figures/loss_curves', exist_ok=True)
+    os.makedirs('figures/test_output', exist_ok=True)
+
+
+def plot_spectrum(data, name):
+    save_dir = os.path.join('figures/test_output', name)
+    plt.figure()
+    plt.plot(range(len(data)), data, 'o')
+    plt.legend(('Spectrum',), loc='best')
+    plt.title('Spectrum')
+    plt.savefig(save_dir)
+    plt.close()

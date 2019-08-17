@@ -6,7 +6,7 @@
     "out_num": 32,
     "all_num": 1000,
     "batch_size": 50,
-    "epochs": 100,
+    "epochs": 10,
     "ratio": 0.8,
     "lr": 0.2,
     "save_epoch": 100

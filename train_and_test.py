@@ -2,11 +2,12 @@
 # @Author: Brandon Han
 # @Date:   2019-08-17 15:20:26
 # @Last Modified by:   Brandon Han
-# @Last Modified time: 2019-08-17 17:24:03
+# @Last Modified time: 2019-08-17 18:32:59
 
 import torch
 import torch.nn as nn
 import visdom
+import numpy as np
 import os
 import sys
 current_dir = os.path.abspath(os.path.dirname(__file__))
@@ -14,6 +15,7 @@ sys.path.append(current_dir)
 from torch.utils.data import DataLoader, TensorDataset
 from net import SimulatorNet
 from utils import *
+from tqdm import tqdm
 
 
 def train_simulator(params):
@@ -57,7 +59,7 @@ def train_simulator(params):
     criterion = nn.MSELoss()
     train_loss_list, val_loss_list, epoch_list = [], [], []
 
-    if params.restore_from is not None:
+    if params.restore_from:
         load_checkpoint(params.restore_from, net, optimizer)
 
     # Start training
@@ -131,3 +133,34 @@ def test_simulator(params):
     # Device configuration
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     print('Test starts, using %s' % (device))
+
+    # Visualization configuration
+    make_figure_dir()
+
+    # Data configuration
+    x = torch.rand(params.all_num, params.in_num)
+    test_x = x[int(params.all_num * params.ratio):, :]
+
+    y = torch.rand(params.all_num, params.out_num)
+    test_y = y[int(params.all_num * params.ratio):, :]
+
+    test_dataset = TensorDataset(test_x, test_y)
+    test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=True)
+
+    # Net configuration
+    net = SimulatorNet(in_num=params.in_num, out_num=params.out_num)
+    net.to(device)
+    if params.restore_from:
+        load_checkpoint(params.restore_from, net, None)
+    net.eval()
+
+    with tqdm(total=200, ncols=70) as t:
+        for i, data in enumerate(test_loader):
+            inputs, labels = data
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = net(inputs)
+            plot_spectrum(outputs.view(-1).cpu().detach().numpy(), str(i) + '.png')
+            t.update()
+
+
+    print('Finished Testing')
