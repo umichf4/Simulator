@@ -2,7 +2,7 @@
 # @Author: Brandon Han
 # @Date:   2019-08-17 15:20:26
 # @Last Modified by:   Brandon Han
-# @Last Modified time: 2019-08-17 18:32:59
+# @Last Modified time: 2019-08-18 18:19:28
 
 import torch
 import torch.nn as nn
@@ -159,8 +159,7 @@ def test_simulator(params):
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = net(inputs)
-            plot_spectrum(outputs.view(-1).cpu().detach().numpy(), str(i) + '.png')
+            plot_single_part(outputs.view(-1).cpu().detach().numpy(), str(i) + '.png')
             t.update()
-
 
     print('Finished Testing')

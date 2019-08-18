@@ -2,7 +2,7 @@
 # @Author: Brandon Han
 # @Date:   2019-08-17 15:20:26
 # @Last Modified by:   Brandon Han
-# @Last Modified time: 2019-08-18 13:33:13
+# @Last Modified time: 2019-08-18 18:20:06
 import torch
 import os
 import json
@@ -69,15 +69,44 @@ def make_figure_dir():
     os.makedirs('figures/test_output', exist_ok=True)
 
 
-def plot_spectrum(data, name):
+def plot_single_part(data, name):
     save_dir = os.path.join('figures/test_output', name)
     plt.figure()
-    plt.plot(range(len(data)), data, 'o')
+    plt.plot(range(400, 680, len(data)), data, 'o')
     plt.grid()
     plt.legend(('Spectrum',), loc='best')
     plt.title('Spectrum')
     plt.savefig(save_dir)
     plt.close()
+
+
+def plot_both_parts(amp, phase, name):
+
+    color_left = 'blue'
+    color_right = 'red'
+    save_dir = os.path.join('figures/test_output', name)
+    wavelength = range(400, 680, len(amp))
+
+    fig, ax1 = plt.subplots()
+
+    ax1.set_xlabel('Wavelength (nm)')
+    ax1.set_ylabel('Amplitude', color=color_left)
+    ax1.plot(wavelength, amp, color=color_left, label='Amplitude')
+    ax1.legend()
+    ax1.tick_params(axis='y', labelcolor=color_left)
+    ax1.grid()
+
+    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+    ax2.set_ylabel('Phase (degree)', color=color_right)  # we already handled the x-label with ax1
+    ax2.plot(wavelength, phase, color=color_right, label='Phase')
+    ax2.legend()
+    ax2.tick_params(axis='y', labelcolor=color_right)
+    ax2.spines['left'].set_color(color_left)
+    ax2.spines['right'].set_color(color_right)
+
+    fig.tight_layout()  # otherwise the right y-label is slightly clipped
+    plt.savefig(save_dir)
+    plt.show()
 
 
 def rect2polar(real, imag):
