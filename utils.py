@@ -2,11 +2,13 @@
 # @Author: Brandon Han
 # @Date:   2019-08-17 15:20:26
 # @Last Modified by:   Brandon Han
-# @Last Modified time: 2019-08-17 18:43:26
+# @Last Modified time: 2019-08-18 13:33:13
 import torch
 import os
 import json
 import matplotlib.pyplot as plt
+import cmath
+import numpy as np
 
 
 class Params():
@@ -71,7 +73,34 @@ def plot_spectrum(data, name):
     save_dir = os.path.join('figures/test_output', name)
     plt.figure()
     plt.plot(range(len(data)), data, 'o')
+    plt.grid()
     plt.legend(('Spectrum',), loc='best')
     plt.title('Spectrum')
     plt.savefig(save_dir)
     plt.close()
+
+
+def rect2polar(real, imag):
+    complex_number = complex(real, imag)
+    return abs(complex_number), cmath.phase(complex_number)
+
+
+def polar2rect(modu, phase):
+    complex_number = cmath.rect(modu, phase)
+    return complex_number.real, complex_number.imag
+
+
+def rect2polar_parallel(real_que, imag_que):
+    assert len(real_que) == len(imag_que), "Size mismatch"
+    modu_que, phase_que = np.zeros(len(real_que)), np.zeros(len(real_que))
+    for i, real, imag in zip(range(len(real_que)), real_que, imag_que):
+        modu_que[i], phase_que[i] = rect2polar(real, imag)
+    return modu_que, phase_que
+
+
+def polar2rect_parallel(modu_que, phase_que):
+    assert len(modu_que) == len(phase_que), "Size mismatch"
+    real_que, imag_que = np.zeros(len(modu_que)), np.zeros(len(modu_que))
+    for i, modu, phase in zip(range(len(modu_que)), modu_que, phase_que):
+        real_que[i], imag_que[i] = polar2rect(modu, phase)
+    return real_que, imag_que
