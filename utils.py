@@ -2,11 +2,12 @@
 # @Author: Brandon Han
 # @Date:   2019-08-17 15:20:26
 # @Last Modified by:   Brandon Han
-# @Last Modified time: 2019-08-17 18:43:26
+# @Last Modified time: 2019-08-18 12:49:18
 import torch
 import os
 import json
 import matplotlib.pyplot as plt
+from cmath import phase, rect
 
 
 class Params():
@@ -75,3 +76,13 @@ def plot_spectrum(data, name):
     plt.title('Spectrum')
     plt.savefig(save_dir)
     plt.close()
+
+
+def rect2polar(real, imag):
+    complex_number = complex(real, imag)
+    return abs(complex_number), phase(complex_number)
+
+
+def polar2rect(modu, phase):
+    complex_number = rect(modu, phase)
+    return complex_number.real, complex_number.imag
