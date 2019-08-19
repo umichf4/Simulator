@@ -2,7 +2,7 @@
 # @Author: Brandon Han
 # @Date:   2019-08-17 15:20:26
 # @Last Modified by:   Brandon Han
-# @Last Modified time: 2019-08-18 23:08:48
+# @Last Modified time: 2019-08-19 00:18:56
 
 import torch
 import torch.nn as nn
@@ -75,8 +75,10 @@ def train_simulator(params):
 
             optimizer.zero_grad()
 
-            outputs = net(inputs)
-            train_loss = criterion(outputs, labels)
+            real_outputs, imag_outputs = net(inputs)
+            train_real_loss = criterion(real_outputs, labels)
+            train_imag_loss = criterion(imag_outputs, labels)
+            train_loss = train_imag_loss + train_real_loss
             train_loss.backward()
 
             optimizer.step()
@@ -89,9 +91,10 @@ def train_simulator(params):
         for i, data in enumerate(valid_loader):
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device)
-            outputs = net(inputs)
-
-            val_loss += criterion(outputs, labels).sum()
+            real_outputs, imag_outputs = net(inputs)
+            val_real_loss = criterion(real_outputs, labels)
+            val_imag_loss = criterion(imag_outputs, labels)
+            val_loss += (val_real_loss + val_imag_loss)
 
         val_loss /= (i + 1)
         val_loss_list.append(val_loss)
@@ -158,10 +161,11 @@ def test_simulator(params):
         for i, data in enumerate(test_loader):
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device)
-            outputs = net(inputs)
-            real_pred = outputs.view(-1).cpu().detach().numpy()
+            real_outputs, imag_outputs = net(inputs)
+            real_pred = real_outputs.view(-1).cpu().detach().numpy()
+            imag_pred = imag_outputs.view(-1).cpu().detach().numpy()
             plot_single_part(real_pred, str(i) + '.png')
-            plot_both_parts(real_pred, real_pred, str(100 * i) + '.png')
+            plot_both_parts(real_pred, imag_pred, str(100 * i) + '.png')
             t.update()
 
     print('Finished Testing')

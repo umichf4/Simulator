@@ -2,7 +2,7 @@
 # @Author: Brandon Han
 # @Date:   2019-08-17 15:20:26
 # @Last Modified by:   Brandon Han
-# @Last Modified time: 2019-08-17 16:54:08
+# @Last Modified time: 2019-08-19 00:06:58
 
 import torch
 import torch.nn as nn
@@ -66,9 +66,10 @@ class SimulatorNet(nn.Module):
             nn.Linear(50, out_num)
         )
 
-    def forward(self, x):
-        x = self.FC(x)
-        return x
+    def forward(self, input):
+        real = self.FC(input)
+        imag = self.FC(input)
+        return real, imag
 
 
 if __name__ == '__main__':

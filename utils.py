@@ -2,7 +2,7 @@
 # @Author: Brandon Han
 # @Date:   2019-08-17 15:20:26
 # @Last Modified by:   Brandon Han
-# @Last Modified time: 2019-08-18 23:29:30
+# @Last Modified time: 2019-08-18 23:33:40
 import torch
 import os
 import json
@@ -94,8 +94,8 @@ def plot_single_part(data, name, legend='Real part', interpolate=True):
 
 def plot_both_parts(amp, phase, name, interpolate=True):
 
-    color_left = 'blue'
-    color_right = 'red'
+    color_left = 'tab:blue'
+    color_right = 'tab:red'
     save_dir = os.path.join('figures/test_output', name)
     wavelength = np.linspace(400, 680, len(amp))
 
