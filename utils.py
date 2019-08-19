@@ -2,13 +2,14 @@
 # @Author: Brandon Han
 # @Date:   2019-08-17 15:20:26
 # @Last Modified by:   Brandon Han
-# @Last Modified time: 2019-08-18 18:20:06
+# @Last Modified time: 2019-08-18 22:57:08
 import torch
 import os
 import json
 import matplotlib.pyplot as plt
 import cmath
 import numpy as np
+from scipy import interpolate
 
 
 class Params():
@@ -62,6 +63,13 @@ def load_checkpoint(path, net, optimizer):
         optimizer.load_state_dict(state['optim_state_dict'])
 
     print('Model loaded')
+
+
+def interploate_wavelength(org_data, points=1000):
+    org_wavelength = range(400, 680, len(org_data))
+    new_wavelength = range(400, 680, points)
+    inter_func = interpolate.interp1d(org_wavelength, org_data, kind='cubic')
+    return inter_func(new_wavelength)
 
 
 def make_figure_dir():
