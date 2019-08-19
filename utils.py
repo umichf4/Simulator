@@ -2,7 +2,7 @@
 # @Author: Brandon Han
 # @Date:   2019-08-17 15:20:26
 # @Last Modified by:   Brandon Han
-# @Last Modified time: 2019-08-18 23:33:40
+# @Last Modified time: 2019-08-19 03:03:36
 import torch
 import os
 import json
@@ -53,15 +53,17 @@ def save_checkpoint(state, path, name):
     print('Model saved')
 
 
-def load_checkpoint(path, net, optimizer):
+def load_checkpoint(path, net_real, net_imag, optimizer_real=None, optimizer_imag=None):
     if not os.path.exists(path):
         raise("File doesn't exist {}".format(path))
 
     state = torch.load(path)
-    net.load_state_dict(state['net_state_dict'])
-    if optimizer is not None:
-        optimizer.load_state_dict(state['optim_state_dict'])
+    net_real.load_state_dict(state['real_net_state_dict'])
+    net_imag.load_state_dict(state['imag_net_state_dict'])
 
+    if optimizer_real is not None:
+        optimizer_real.load_state_dict(state['real_optim_state_dict'])
+        optimizer_imag.load_state_dict(state['imag_optim_state_dict'])
     print('Model loaded')
 
 
