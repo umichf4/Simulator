@@ -2,7 +2,7 @@
 # @Author: Brandon Han
 # @Date:   2019-08-17 15:20:26
 # @Last Modified by:   Brandon Han
-# @Last Modified time: 2019-08-18 22:57:08
+# @Last Modified time: 2019-08-18 23:29:30
 import torch
 import os
 import json
@@ -66,8 +66,8 @@ def load_checkpoint(path, net, optimizer):
 
 
 def interploate_wavelength(org_data, points=1000):
-    org_wavelength = range(400, 680, len(org_data))
-    new_wavelength = range(400, 680, points)
+    org_wavelength = np.linspace(400, 680, len(org_data))
+    new_wavelength = np.linspace(400, 680, points)
     inter_func = interpolate.interp1d(org_wavelength, org_data, kind='cubic')
     return inter_func(new_wavelength)
 
@@ -77,44 +77,54 @@ def make_figure_dir():
     os.makedirs('figures/test_output', exist_ok=True)
 
 
-def plot_single_part(data, name):
+def plot_single_part(data, name, legend='Real part', interpolate=True):
     save_dir = os.path.join('figures/test_output', name)
     plt.figure()
-    plt.plot(range(400, 680, len(data)), data, 'o')
+    plt.plot(np.linspace(400, 680, len(data)), data, 'ob')
     plt.grid()
-    plt.legend(('Spectrum',), loc='best')
-    plt.title('Spectrum')
+    if interpolate:
+        new_data = interploate_wavelength(data)
+        plt.plot(np.linspace(400, 680, len(new_data)), new_data, '-b')
+    plt.title(legend)
+    plt.xlabel('Wavelength (nm)')
+    plt.ylabel(legend)
     plt.savefig(save_dir)
     plt.close()
 
 
-def plot_both_parts(amp, phase, name):
+def plot_both_parts(amp, phase, name, interpolate=True):
 
     color_left = 'blue'
     color_right = 'red'
     save_dir = os.path.join('figures/test_output', name)
-    wavelength = range(400, 680, len(amp))
+    wavelength = np.linspace(400, 680, len(amp))
 
     fig, ax1 = plt.subplots()
 
     ax1.set_xlabel('Wavelength (nm)')
     ax1.set_ylabel('Amplitude', color=color_left)
-    ax1.plot(wavelength, amp, color=color_left, label='Amplitude')
-    ax1.legend()
+    ax1.plot(wavelength, amp, 'o', color=color_left, label='Amplitude')
+    if interpolate:
+        new_amp = interploate_wavelength(amp)
+        ax1.plot(np.linspace(400, 680, len(new_amp)), new_amp, color=color_left)
+    # ax1.legend(loc='upper left')
     ax1.tick_params(axis='y', labelcolor=color_left)
     ax1.grid()
 
     ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
     ax2.set_ylabel('Phase (degree)', color=color_right)  # we already handled the x-label with ax1
-    ax2.plot(wavelength, phase, color=color_right, label='Phase')
-    ax2.legend()
+    ax2.plot(wavelength, phase, 'o', color=color_right, label='Phase')
+    if interpolate:
+        new_phase = interploate_wavelength(phase)
+        ax2.plot(np.linspace(400, 680, len(new_phase)), new_phase, color=color_right)
+    # ax2.legend(loc='upper right')
     ax2.tick_params(axis='y', labelcolor=color_right)
     ax2.spines['left'].set_color(color_left)
     ax2.spines['right'].set_color(color_right)
+    plt.title('Amplitude and Phase')
 
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
     plt.savefig(save_dir)
-    plt.show()
 
 
 def rect2polar(real, imag):

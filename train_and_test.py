@@ -2,7 +2,7 @@
 # @Author: Brandon Han
 # @Date:   2019-08-17 15:20:26
 # @Last Modified by:   Brandon Han
-# @Last Modified time: 2019-08-18 18:19:28
+# @Last Modified time: 2019-08-18 23:08:48
 
 import torch
 import torch.nn as nn
@@ -159,7 +159,9 @@ def test_simulator(params):
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = net(inputs)
-            plot_single_part(outputs.view(-1).cpu().detach().numpy(), str(i) + '.png')
+            real_pred = outputs.view(-1).cpu().detach().numpy()
+            plot_single_part(real_pred, str(i) + '.png')
+            plot_both_parts(real_pred, real_pred, str(100 * i) + '.png')
             t.update()
 
     print('Finished Testing')
