@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: Brandon Han
 # @Date:   2019-08-17 15:20:26
-# @Last Modified by:   BrandonHanx
-# @Last Modified time: 2019-08-19 14:41:04
+# @Last Modified by:   Brandon Han
+# @Last Modified time: 2019-08-18 23:29:30
 import torch
 import os
 import json
@@ -53,17 +53,15 @@ def save_checkpoint(state, path, name):
     print('Model saved')
 
 
-def load_checkpoint(path, net_real, net_imag, optimizer_real=None, optimizer_imag=None):
+def load_checkpoint(path, net, optimizer):
     if not os.path.exists(path):
         raise("File doesn't exist {}".format(path))
 
     state = torch.load(path)
-    net_real.load_state_dict(state['real_net_state_dict'])
-    net_imag.load_state_dict(state['imag_net_state_dict'])
+    net.load_state_dict(state['net_state_dict'])
+    if optimizer is not None:
+        optimizer.load_state_dict(state['optim_state_dict'])
 
-    if optimizer_real is not None:
-        optimizer_real.load_state_dict(state['real_optim_state_dict'])
-        optimizer_imag.load_state_dict(state['imag_optim_state_dict'])
     print('Model loaded')
 
 
@@ -96,8 +94,8 @@ def plot_single_part(data, name, legend='Real part', interpolate=True):
 
 def plot_both_parts(amp, phase, name, interpolate=True):
 
-    color_left = 'tab:blue'
-    color_right = 'tab:red'
+    color_left = 'blue'
+    color_right = 'red'
     save_dir = os.path.join('figures/test_output', name)
     wavelength = np.linspace(400, 680, len(amp))
 
@@ -127,21 +125,6 @@ def plot_both_parts(amp, phase, name, interpolate=True):
 
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
     plt.savefig(save_dir)
-
-
-def plot_loss_curves(train_real, train_imag, val_real, val_imag):
-    save_dir = 'figures\\loss_curves\\loss.png'
-    plt.figure()
-    plt.plot(train_real)
-    plt.plot(train_imag)
-    plt.plot(val_real)
-    plt.plot(val_imag)
-    plt.grid()
-    plt.title('Loss curves')
-    plt.xlabel('Epochs')
-    plt.legend(('Train Real', 'Train Imag', 'Val Real', 'Val Imag',))
-    plt.savefig(save_dir)
-    plt.close()
 
 
 def rect2polar(real, imag):
