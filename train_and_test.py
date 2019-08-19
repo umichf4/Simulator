@@ -2,7 +2,7 @@
 # @Author: Brandon Han
 # @Date:   2019-08-17 15:20:26
 # @Last Modified by:   Brandon Han
-# @Last Modified time: 2019-08-19 03:05:28
+# @Last Modified time: 2019-08-19 13:37:25
 
 import torch
 import torch.nn as nn
@@ -61,6 +61,7 @@ def train_simulator(params):
     optimizer_imag = torch.optim.SGD(net_imag.parameters(), lr=params.lr)
     criterion = nn.MSELoss()
     train_loss_list, val_loss_list, epoch_list = [], [], []
+    train_real_loss_list, train_imag_loss_list, val_real_loss_list, val_imag_loss_list = [], [], [], []
 
     if params.restore_from is not None:
         load_checkpoint(params.restore_from, net_real, net_imag, optimizer_real, optimizer_imag)
@@ -83,7 +84,7 @@ def train_simulator(params):
             real_outputs = net_real(inputs)
             imag_outputs = net_imag(inputs)
             train_real_loss = criterion(real_outputs, labels)
-            train_imag_loss = criterion(imag_outputs, labels)
+            train_imag_loss = criterion(imag_outputs, 0 * labels)
             train_real_loss.backward()
             train_imag_loss.backward()
 
@@ -93,6 +94,8 @@ def train_simulator(params):
             optimizer_imag.step()
 
         train_loss_list.append(train_loss)
+        train_real_loss_list.append(train_real_loss)
+        train_imag_loss_list.append(train_loss_list)
 
         # Validation
         net_real.eval()
@@ -109,6 +112,8 @@ def train_simulator(params):
 
         val_loss /= (i + 1)
         val_loss_list.append(val_loss)
+        val_real_loss_list.append(val_real_loss)
+        val_imag_loss_list.append(val_imag_loss)
 
         print('Epoch=%d  train_real: %.7f train_imag: %.7f val_real: %.7f val_imag: %.7f' %
               (epoch, train_real_loss, train_imag_loss, val_real_loss, val_imag_loss))
@@ -143,6 +148,11 @@ def train_simulator(params):
                              'imag_optim_state_dict': optimizer_imag.state_dict(),
                              },
                             path=path, name=name)
+            np.save('figures\\loss_curves\\train_real.npy', np.array(train_real_loss_list))
+            np.save('figures\\loss_curves\\train_imag.npy', np.array(train_imag_loss_list))
+            np.save('figures\\loss_curves\\val_real.npy', np.array(val_real_loss_list))
+            np.save('figures\\loss_curves\\val_imag.npy', np.array(val_imag_loss_list))
+            plot_loss_curves(train_real_loss_list, train_imag_loss_list, val_real_loss_list, val_imag_loss_list)
 
     print('Finished Training')
 

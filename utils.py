@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: Brandon Han
 # @Date:   2019-08-17 15:20:26
-# @Last Modified by:   Brandon Han
-# @Last Modified time: 2019-08-19 03:03:36
+# @Last Modified by:   BrandonHanx
+# @Last Modified time: 2019-08-19 14:41:04
 import torch
 import os
 import json
@@ -127,6 +127,21 @@ def plot_both_parts(amp, phase, name, interpolate=True):
 
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
     plt.savefig(save_dir)
+
+
+def plot_loss_curves(train_real, train_imag, val_real, val_imag):
+    save_dir = 'figures\\loss_curves\\loss.png'
+    plt.figure()
+    plt.plot(train_real)
+    plt.plot(train_imag)
+    plt.plot(val_real)
+    plt.plot(val_imag)
+    plt.grid()
+    plt.title('Loss curves')
+    plt.xlabel('Epochs')
+    plt.legend(('Train Real', 'Train Imag', 'Val Real', 'Val Imag',))
+    plt.savefig(save_dir)
+    plt.close()
 
 
 def rect2polar(real, imag):
