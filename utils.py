@@ -171,7 +171,7 @@ if __name__ == "__main__":
     for file in files:
 
         path = os.path.join(data_path, file)
-        data_array, data_list = load_mat(path)
+        data_list, data_array = load_mat(path)
         data_list_all.append(data_list)
 
     print('done')
