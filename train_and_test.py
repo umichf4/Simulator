@@ -16,6 +16,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from net import SimulatorNet
 from utils import *
 from tqdm import tqdm
+from torch.optim import lr_scheduler
 
 
 def train_simulator(params):
@@ -63,7 +64,8 @@ def train_simulator(params):
     net = net.double()
     net.to(device)
 
-    optimizer = torch.optim.SGD(net.parameters(), lr=params.lr)
+    optimizer = torch.optim.Adam(net.parameters(), lr=params.lr, betas=(0.9, 0.99))
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.1)
     criterion = nn.MSELoss()
     train_loss_list, val_loss_list, epoch_list = [], [], []
 
@@ -74,7 +76,7 @@ def train_simulator(params):
     for k in range(params.epochs):
         epoch = k + 1
         epoch_list.append(epoch)
-
+        
         # Train
         net.train()
         for i, data in enumerate(train_loader):
@@ -104,9 +106,11 @@ def train_simulator(params):
         val_loss /= (i + 1)
         val_loss_list.append(val_loss)
 
-        print('Epoch=%d  train_loss: %.7f valid_loss: %.7f' %
-              (epoch, train_loss, val_loss))
-
+        print('Epoch=%d  train_loss: %.7f valid_loss: %.7f lr: %.7f' %
+              (epoch, train_loss, val_loss, scheduler.get_lr()[0]))
+        
+        scheduler.step()
+        
         # Update Visualization
         if viz.check_connection():
             cur_epoch_loss = viz.line(torch.Tensor(train_loss_list), torch.Tensor(epoch_list),
