@@ -41,6 +41,8 @@ def train_simulator(params):
     np.random.shuffle(TT_array)   
     all_num = TT_array.shape[0]
     TT_tensor = torch.from_numpy(TT_array)
+    TT_tensor = TT_tensor.double()
+#    print(TT_tensor.dtype)
     
     x = TT_tensor[:, :-1]
     train_x = x[:int(all_num * params.ratio), :]

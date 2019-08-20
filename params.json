@@ -3,10 +3,10 @@
     "wavelength_high": 680,
     "shape": "circle",
     "in_num": 3,
-    "out_num": 32,
-    "batch_size": 50,
+    "out_num": 1,
+    "batch_size": 256,
     "epochs": 10,
-    "ratio": 0.8,
-    "lr": 0.2,
+    "ratio": 0.9,
+    "lr": 0.01,
     "save_epoch": 100
 }
