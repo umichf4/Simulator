@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import cmath
 import numpy as np
 from scipy import interpolate
+import scipy.io as scio
 
 
 class Params():
@@ -151,3 +152,26 @@ def polar2rect_parallel(modu_que, phase_que):
     for i, modu, phase in zip(range(len(modu_que)), modu_que, phase_que):
         real_que[i], imag_que[i] = polar2rect(modu, phase)
     return real_que, imag_que
+
+
+def load_mat(path):
+    data = scio.loadmat(path)
+    TT_array = data['TT_list']
+    TT_list = TT_array.tolist()
+    return TT_list, TT_array
+
+if __name__ == "__main__":
+    
+    current_dir = os.path.abspath(os.path.dirname(__file__))
+    data_path = current_dir + '\\data'
+    files = os.listdir(data_path)
+
+    data_list_all = []
+
+    for file in files:
+
+        path = os.path.join(data_path, file)
+        data_array, data_list = load_mat(path)
+        data_list_all.append(data_list)
+
+    print('done')
