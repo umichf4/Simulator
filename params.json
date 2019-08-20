@@ -4,7 +4,6 @@
     "shape": "circle",
     "in_num": 3,
     "out_num": 32,
-    "all_num": 1000,
     "batch_size": 50,
     "epochs": 10,
     "ratio": 0.8,

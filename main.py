@@ -16,6 +16,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--save_model_dir', default='models', type=str)
 parser.add_argument('--restore_from', default=None, type=str)
 parser.add_argument('--json_path', default='params.json', type=str)
+parser.add_argument('--T_path', default='data\combine_TT.mat', type=str)
 parser.add_argument('--test', action='store_true', default=False)
 args = parser.parse_args()
 
@@ -25,6 +26,7 @@ assert os.path.isfile(json_path), "No json file found at {}".format(json_path)
 params = Params(json_path)
 params.restore_from = args.restore_from
 params.save_model_dir = args.save_model_dir
+params.T_path = args.T_path
 
 if args.test:
     test_simulator(params)

@@ -37,13 +37,18 @@ def train_simulator(params):
     }
 
     # Data configuration
-    x = torch.rand(params.all_num, params.in_num)
-    train_x = x[:int(params.all_num * params.ratio), :]
-    valid_x = x[int(params.all_num * params.ratio):, :]
+    TT_list, TT_array = load_mat(params.T_path)
+    np.random.shuffle(TT_array)   
+    all_num = TT_array.shape[0]
+    TT_tensor = torch.from_numpy(TT_array)
+    
+    x = TT_tensor[:, :-1]
+    train_x = x[:int(all_num * params.ratio), :]
+    valid_x = x[int(all_num * params.ratio):, :]
 
-    y = torch.rand(params.all_num, params.out_num)
-    train_y = y[:int(params.all_num * params.ratio), :]
-    valid_y = y[int(params.all_num * params.ratio):, :]
+    y = TT_tensor[:, -1]
+    train_y = y[:int(all_num * params.ratio)]
+    valid_y = y[int(all_num * params.ratio):]
 
     train_dataset = TensorDataset(train_x, train_y)
     train_loader = DataLoader(dataset=train_dataset, batch_size=params.batch_size, shuffle=True)
