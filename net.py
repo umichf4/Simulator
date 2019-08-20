@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: Brandon Han
 # @Date:   2019-08-17 15:20:26
-# @Last Modified by:   Brandon Han
-# @Last Modified time: 2019-08-17 16:54:08
+# @Last Modified by:   BrandonHanx
+# @Last Modified time: 2019-08-20 17:43:25
 
 import torch
 import torch.nn as nn
@@ -38,6 +38,7 @@ class SimulatorNet(nn.Module):
         x = self.FC(x)
         return x
 
+
 class FirstBlinear(nn.Module):
     """Applies a linear transformation to the incoming data: :math:`y = e^TWe + e^TM(e*e) + V[e (e*e)]^T + b`
     """
@@ -47,14 +48,8 @@ class FirstBlinear(nn.Module):
         super(FirstBlinear, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
-#        self.W = nn.Parameter(torch.Tensor(out_features, in_features, in_features, dtype=torch.float64), requires_grad=True)
-#        self.M = nn.Parameter(torch.Tensor(out_features, in_features, in_features, dtype=torch.float64), requires_grad=True)
-#        self.V = nn.Parameter(torch.Tensor(2 * in_features, out_features, dtype=torch.float64), requires_grad=True)
-#        self.b = nn.Parameter(torch.Tensor(out_features, dtype=torch.float64), requires_grad=True)
         self.W = nn.Parameter(torch.Tensor(out_features, in_features, in_features), requires_grad=True)
-        #self.W = self.W.double()
         self.M = nn.Parameter(torch.Tensor(out_features, in_features, in_features), requires_grad=True)
-        #self.M = self.M.double()
         self.V = nn.Parameter(torch.Tensor(2 * in_features, out_features), requires_grad=True)
         self.b = nn.Parameter(torch.Tensor(out_features), requires_grad=True)
         self.reset_parameters()
