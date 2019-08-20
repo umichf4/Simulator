@@ -60,6 +60,7 @@ def train_simulator(params):
 
     # Net configuration
     net = SimulatorNet(in_num=params.in_num, out_num=params.out_num)
+    net = net.double()
     net.to(device)
 
     optimizer = torch.optim.SGD(net.parameters(), lr=params.lr)
