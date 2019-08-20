@@ -5,8 +5,8 @@
     "in_num": 3,
     "out_num": 1,
     "batch_size": 256,
-    "epochs": 10,
-    "ratio": 0.9,
-    "lr": 0.01,
+    "epochs": 200,
+    "ratio": 0.95,
+    "lr": 0.001,
     "save_epoch": 100
 }
