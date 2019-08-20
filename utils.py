@@ -156,7 +156,7 @@ def polar2rect_parallel(modu_que, phase_que):
 
 def load_mat(path):
     data = scio.loadmat(path)
-    TT_array = data['TT_list']
+    TT_array = data['combine_TT']
     TT_list = TT_array.tolist()
     return TT_list, TT_array
 
