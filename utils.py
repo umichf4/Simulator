@@ -160,7 +160,7 @@ def load_mat(path):
     data = scio.loadmat(path)
     TT_array = data[target]
     TT_list = TT_array.tolist()
-    return TT_list
+    return TT_list, TT_array
 
 
 if __name__ == "__main__":
