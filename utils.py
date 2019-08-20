@@ -155,10 +155,13 @@ def polar2rect_parallel(modu_que, phase_que):
 
 
 def load_mat(path):
+    variables = scio.whosmat(path)
+    target = variables[0][0]
     data = scio.loadmat(path)
-    TT_array = data['TT_list']
+    TT_array = data[target]
     TT_list = TT_array.tolist()
-    return TT_list, TT_array
+    return TT_list
+
 
 if __name__ == "__main__":
     
@@ -171,7 +174,7 @@ if __name__ == "__main__":
     for file in files:
 
         path = os.path.join(data_path, file)
-        data_list, data_array = load_mat(path)
-        data_list_all.append(data_list)
+        data_list = load_mat(path)
+        data_list_all.extend(data_list)
 
     print('done')
