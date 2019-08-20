@@ -21,7 +21,7 @@ parser.add_argument('--test', action='store_true', default=False)
 args = parser.parse_args()
 
 # Load parameters from json file
-json_path = args.json_path
+json_path = os.path.join(current_dir, args.json_path)
 assert os.path.isfile(json_path), "No json file found at {}".format(json_path)
 params = Params(json_path)
 params.restore_from = args.restore_from

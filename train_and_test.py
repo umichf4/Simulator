@@ -64,6 +64,8 @@ def train_simulator(params):
     net = net.double()
     net.to(device)
 
+    optimizer = torch.optim.SGD(net.parameters(), lr=params.lr)
+
     criterion = nn.MSELoss()
     train_loss_list, val_loss_list, epoch_list = [], [], []
 
@@ -80,9 +82,6 @@ def train_simulator(params):
         for i, data in enumerate(train_loader):
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device)
-
-            lr_cur = params.lr * m.pow((i + 1), params.lr_dgr)
-            optimizer = torch.optim.SGD(net.parameters(), lr=lr_cur)
 
             optimizer.zero_grad()
 
