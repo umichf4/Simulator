@@ -14,10 +14,10 @@ warnings.filterwarnings('ignore')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--save_model_dir', default='models', type=str)
-parser.add_argument('--restore_from', default=None, type=str)
+parser.add_argument('--restore_from', default='models\Epoch50_final.pth', type=str)
 parser.add_argument('--json_path', default='params.json', type=str)
 parser.add_argument('--T_path', default='data\combine_TT.mat', type=str)
-parser.add_argument('--test', action='store_true', default=False)
+parser.add_argument('--test', action='store_true', default=True)
 args = parser.parse_args()
 
 # Load parameters from json file

@@ -144,19 +144,26 @@ def test_simulator(params):
 
     # Visualization configuration
     make_figure_dir()
-
+    
+    TT_list, TT_array = load_mat(params.T_path)
+    np.random.shuffle(TT_array)   
+    all_num = TT_array.shape[0]
+    TT_tensor = torch.from_numpy(TT_array)
+    TT_tensor = TT_tensor.double()
+    
     # Data configuration
-    x = torch.rand(params.all_num, params.in_num)
-    test_x = x[int(params.all_num * params.ratio):, :]
+    x = TT_tensor[:, :-1]
+    test_x = x[int(all_num * params.ratio):, :]
 
-    y = torch.rand(params.all_num, params.out_num)
-    test_y = y[int(params.all_num * params.ratio):, :]
+    y = TT_tensor[:, -1]
+    test_y = y[int(all_num * params.ratio):]
 
     test_dataset = TensorDataset(test_x, test_y)
     test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=True)
 
     # Net configuration
     net = SimulatorNet(in_num=params.in_num, out_num=params.out_num)
+    net = net.double()
     net.to(device)
     if params.restore_from:
         load_checkpoint(params.restore_from, net, None)
@@ -168,7 +175,7 @@ def test_simulator(params):
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = net(inputs)
             pred = outputs.view(-1).cpu().detach().numpy()
-            plot_single_part(pred, str(i) + '.png')
+            plot_single_part(pred, str(i) + '.png', interpolate = False)
             # plot_both_parts(pred, real_pred, str(100 * i) + '.png')
             t.update()
 
