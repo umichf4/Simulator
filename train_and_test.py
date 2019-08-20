@@ -16,6 +16,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from net import SimulatorNet
 from utils import *
 from tqdm import tqdm
+import math as m
 
 
 def train_simulator(params):
@@ -37,7 +38,7 @@ def train_simulator(params):
     }
 
     # Data configuration
-    TT_list, TT_array = load_mat(params.T_path)
+    TT_list, TT_array = load_mat(os.path.join(current_dir, params.T_path))
     np.random.shuffle(TT_array)   
     all_num = TT_array.shape[0]
     TT_tensor = torch.from_numpy(TT_array)
@@ -63,7 +64,6 @@ def train_simulator(params):
     net = net.double()
     net.to(device)
 
-    optimizer = torch.optim.SGD(net.parameters(), lr=params.lr)
     criterion = nn.MSELoss()
     train_loss_list, val_loss_list, epoch_list = [], [], []
 
@@ -80,6 +80,9 @@ def train_simulator(params):
         for i, data in enumerate(train_loader):
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device)
+
+            lr_cur = params.lr * m.pow((i + 1), params.lr_dgr)
+            optimizer = torch.optim.SGD(net.parameters(), lr=lr_cur)
 
             optimizer.zero_grad()
 
@@ -119,16 +122,16 @@ def train_simulator(params):
                                       opts=cur_epoch_loss_opts)
 
         if epoch % params.save_epoch == 0 and epoch != params.epochs:
-            path = params.save_model_dir
-            name = os.path.join(params.save_model_dir, 'Epoch' + str(epoch) + '.pth')
+            path = os.path.join(current_dir, params.save_model_dir)
+            name = os.path.join(current_dir, params.save_model_dir, 'Epoch' + str(epoch) + '.pth')
             save_checkpoint({'net_state_dict': net.state_dict(),
                              'optim_state_dict': optimizer.state_dict(),
                              },
                             path=path, name=name)
 
         if epoch == params.epochs:
-            path = params.save_model_dir
-            name = os.path.join(params.save_model_dir, 'Epoch' + str(epoch) + '_final.pth')
+            path = os.path.join(current_dir, params.save_model_dir)
+            name = os.path.join(current_dir, params.save_model_dir, 'Epoch' + str(epoch) + '_final.pth')
             save_checkpoint({'net_state_dict': net.state_dict(),
                              'optim_state_dict': optimizer.state_dict(),
                              },
