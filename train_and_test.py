@@ -2,7 +2,7 @@
 # @Author: Brandon Han
 # @Date:   2019-08-17 15:20:26
 # @Last Modified by:   BrandonHanx
-# @Last Modified time: 2019-08-19 15:44:57
+# @Last Modified time: 2019-08-20 18:20:15
 
 import torch
 import torch.nn as nn
@@ -39,12 +39,11 @@ def train_simulator(params):
 
     # Data configuration
     TT_list, TT_array = load_mat(params.T_path)
-    np.random.shuffle(TT_array)   
+    np.random.shuffle(TT_array)
     all_num = TT_array.shape[0]
     TT_tensor = torch.from_numpy(TT_array)
     TT_tensor = TT_tensor.double()
-#    print(TT_tensor.dtype)
-    
+
     x = TT_tensor[:, :-1]
     train_x = x[:int(all_num * params.ratio), :]
     valid_x = x[int(all_num * params.ratio):, :]
@@ -141,6 +140,21 @@ def train_simulator(params):
     print('Finished Training')
 
 
+def find_spectrum(thickness, radius, TT_array):
+    rows, _ = TT_array.shape
+    wavelength, spectrum = [], []
+    for row in range(rows):
+        if TT_array[row, 1] == thickness and TT_array[row, 2] == radius:
+            wavelength.append(TT_array[row, 0])
+            spectrum.append(TT_array[row, -1])
+        else:
+            continue
+    wavelength = np.array(wavelength)
+    spectrum = np.array(spectrum)
+    index_order = np.argsort(wavelength)
+    return wavelength[index_order], spectrum[index_order]
+
+
 def test_simulator(params):
     # Device configuration
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -148,39 +162,27 @@ def test_simulator(params):
 
     # Visualization configuration
     make_figure_dir()
-    
-    TT_list, TT_array = load_mat(params.T_path)
-    np.random.shuffle(TT_array)   
-    all_num = TT_array.shape[0]
-    TT_tensor = torch.from_numpy(TT_array)
-    TT_tensor = TT_tensor.double()
-    
-    # Data configuration
-    x = TT_tensor[:, :-1]
-    test_x = x[int(all_num * params.ratio):, :]
 
-    y = TT_tensor[:, -1]
-    test_y = y[int(all_num * params.ratio):]
+    _, TT_array = load_mat(params.T_path)
 
-    test_dataset = TensorDataset(test_x, test_y)
-    test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=True)
-
-    # Net configuration
     net = SimulatorNet(in_num=params.in_num, out_num=params.out_num)
     net = net.double()
     net.to(device)
     if params.restore_from:
         load_checkpoint(params.restore_from, net, None)
     net.eval()
+    thickness = 600
+    radius = 60
+    spectrum_fake = []
 
-    with tqdm(total=200, ncols=70) as t:
-        for i, data in enumerate(test_loader):
-            inputs, labels = data
-            inputs, labels = inputs.to(device), labels.to(device)
-            outputs = net(inputs)
-            pred = outputs.view(-1).cpu().detach().numpy()
-            plot_single_part(pred, str(i) + '.png', interpolate = False)
-            # plot_both_parts(pred, real_pred, str(100 * i) + '.png')
-            t.update()
+    wavelength_real, spectrum_real = find_spectrum(thickness, radius, TT_array)
+    for wavelength in wavelength_real:
+        test_data = [wavelength, thickness, radius]
+        input_tensor = torch.from_numpy(np.array(test_data)).double().view(1, -1)
+        output_tensor = net(input_tensor)
+        spectrum_fake.append(output_tensor.view(-1).detach().cpu().numpy())
+
+    spectrum_fake = np.array(spectrum_fake).squeeze()
+    plot_both_parts(wavelength_real, spectrum_real, spectrum_fake, 'hhh.png')
 
     print('Finished Testing')
