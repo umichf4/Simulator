@@ -13,7 +13,7 @@ import sys
 current_dir = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(current_dir)
 from torch.utils.data import DataLoader, TensorDataset
-from net import SimulatorNet
+from net_2 import SimulatorNet
 from utils import *
 from tqdm import tqdm
 from torch.optim import lr_scheduler
@@ -38,17 +38,19 @@ def train_simulator(params):
     }
 
     # Data configuration
-    TT_list, TT_array = load_mat(os.path.join(current_dir, params.T_path))
+    TT_pre, _ = load_mat(os.path.join(current_dir, params.T_path))
+    TT_array, _ = data_pre(TT_pre, params.wlimit)
+
     np.random.shuffle(TT_array)   
     all_num = TT_array.shape[0]
     TT_tensor = torch.from_numpy(TT_array)
     TT_tensor = TT_tensor.double()
 
-    x = TT_tensor[:, :-1]
+    x = TT_tensor[:, :2]
     train_x = x[:int(all_num * params.ratio), :]
     valid_x = x[int(all_num * params.ratio):, :]
 
-    y = TT_tensor[:, -1]
+    y = TT_tensor[:, 2:]
     train_y = y[:int(all_num * params.ratio)]
     valid_y = y[int(all_num * params.ratio):]
 
@@ -64,8 +66,9 @@ def train_simulator(params):
     net.to(device)
 
     optimizer = torch.optim.SGD(net.parameters(), lr=params.lr)
+    scheduler = lr_scheduler.StepLR(optimizer, params.step_szie, params.gamma)
 
-    criterion = nn.MSELoss()
+    criterion = nn.L1Loss()
     train_loss_list, val_loss_list, epoch_list = [], [], []
 
     if params.restore_from:
@@ -140,21 +143,6 @@ def train_simulator(params):
     print('Finished Training')
 
 
-def find_spectrum(thickness, radius, TT_array):
-    rows, _ = TT_array.shape
-    wavelength, spectrum = [], []
-    for row in range(rows):
-        if TT_array[row, 1] == thickness and TT_array[row, 2] == radius:
-            wavelength.append(TT_array[row, 0])
-            spectrum.append(TT_array[row, -1])
-        else:
-            continue
-    wavelength = np.array(wavelength)
-    spectrum = np.array(spectrum)
-    index_order = np.argsort(wavelength)
-    return wavelength[index_order], spectrum[index_order]
-
-
 def test_simulator(params):
     # Device configuration
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -163,26 +151,37 @@ def test_simulator(params):
     # Visualization configuration
     make_figure_dir()
 
-    _, TT_array = load_mat(params.T_path)
+    _, TT_array = load_mat(os.path.join(current_dir, params.T_path))
 
     net = SimulatorNet(in_num=params.in_num, out_num=params.out_num)
     net = net.double()
     net.to(device)
     if params.restore_from:
-        load_checkpoint(params.restore_from, net, None)
+        load_checkpoint(os.path.join(current_dir, params.restore_from), net, None)
     net.eval()
-    thickness = 600
-    radius = 60
+    thickness_all = range(200, 800, 100)
+    radius_all = range(20, 100, 10)
     spectrum_fake = []
 
-    wavelength_real, spectrum_real = find_spectrum(thickness, radius, TT_array)
-    for wavelength in wavelength_real:
-        test_data = [wavelength, thickness, radius]
-        input_tensor = torch.from_numpy(np.array(test_data)).double().view(1, -1)
-        output_tensor = net(input_tensor)
-        spectrum_fake.append(output_tensor.view(-1).detach().cpu().numpy())
+    for thickness in thickness_all:
+        for radius in radius_all:
 
-    spectrum_fake = np.array(spectrum_fake).squeeze()
-    plot_both_parts(wavelength_real, spectrum_real, spectrum_fake, 'hhh.png')
+            wavelength_real, spectrum_real = find_spectrum(thickness, radius, TT_array)
+            # if len(wavelength_real) > params.wlimit:
+            #     wavelength_real = wavelength_real[0:params.wlimit]
+            #     spectrum_real = spectrum_real[0:params.wlimit]
+            
+            # for wavelength in wavelength_real:
+            #     test_data = [wavelength, thickness, radius]
+            #     input_tensor = torch.from_numpy(np.array(test_data)).double().view(1, -1)
+            #     output_tensor = net(input_tensor.to(device))
+            #     spectrum_fake.append(output_tensor.view(-1).detach().cpu().numpy())
 
-    print('Finished Testing')
+            test_data = [thickness, radius]
+            input_tensor = torch.from_numpy(np.array(test_data)).double().view(1, -1)
+            output_tensor = net(input_tensor.to(device))
+            spectrum_fake = np.array(output_tensor.view(-1).detach().cpu().numpy()).squeeze()
+            plot_both_parts(wavelength_real, spectrum_real, spectrum_fake, str(thickness) + '_' + str(radius) + '.png')
+            print('Single iteration finished \n')
+
+    print('Finished Testing \n')
