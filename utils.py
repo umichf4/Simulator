@@ -198,6 +198,8 @@ def data_pre(list_all, wlimit):
     for thickness in thickness_list:
         for radius in radius_list:
             pick_index = np.intersect1d(np.argwhere(array_all['radius'] == radius), np.argwhere(array_all['thickness'] == thickness))
+            if pick_index.size == 0:
+                continue
             picked = array_all[pick_index]
             picked = np.sort(picked, order = ['wave_length'])
             cur_ref = [thickness, radius]
