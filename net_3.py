@@ -9,6 +9,14 @@ class SimulatorNet(nn.Module):
         super(SimulatorNet, self).__init__()
         self.FCIN = nn.Sequential(
             # ------------------------------------------------------
+            nn.Linear(2, 64 * 64),
+            nn.BatchNorm1d(64 * 64),
+            nn.LeakyReLU(0.2),
+            # ------------------------------------------------------
+            nn.Linear(64 * 64, 2 * 64 * 64),
+            nn.BatchNorm1d(2 * 64 * 64),
+            nn.LeakyReLU(0.2),
+            # ------------------------------------------------------
             nn.Linear(2, 2 * 64 * 64),
             nn.BatchNorm1d(2 * 64 * 64),
             nn.LeakyReLU(0.2)
@@ -34,6 +42,14 @@ class SimulatorNet(nn.Module):
         )
 
         self.FCOUT = nn.Sequential(
+            # ------------------------------------------------------
+            nn.Linear(4 * 8 * 4 * 4, 4 * 8 * 4 * 4),
+            nn.BatchNorm1d(4 * 8 * 4 * 4),
+            nn.LeakyReLU(0.2),
+            # ------------------------------------------------------
+            nn.Linear(4 * 8 * 4 * 4, 4 * 8 * 4 * 4),
+            nn.BatchNorm1d(4 * 8 * 4 * 4),
+            nn.LeakyReLU(0.2),
             # ------------------------------------------------------
             nn.Linear(4 * 8 * 4 * 4, 28),
             nn.BatchNorm1d(28),
