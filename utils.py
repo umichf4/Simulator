@@ -12,6 +12,7 @@ import numpy as np
 from scipy import interpolate
 import scipy.io as scio
 
+current_dir = os.path.abspath(os.path.dirname(__file__))
 
 class Params():
     """Class that loads hyperparameters from a json file.
@@ -77,12 +78,12 @@ def interploate(org_data, points=1000):
 
 
 def make_figure_dir():
-    os.makedirs('figures/loss_curves', exist_ok=True)
-    os.makedirs('figures/test_output', exist_ok=True)
+    os.makedirs(current_dir + '/figures/loss_curves', exist_ok=True)
+    os.makedirs(current_dir + '/figures/test_output', exist_ok=True)
 
 
 def plot_single_part(wavelength, spectrum, name, legend='spectrum', interpolate=True):
-    save_dir = os.path.join('figures/test_output', name)
+    save_dir = os.path.join(current_dir, 'figures/test_output', name)
     plt.figure()
     plt.plot(wavelength, spectrum, 'ob')
     plt.grid()
@@ -101,7 +102,7 @@ def plot_both_parts(wavelength, real, fake, name, interpolate=True):
 
     color_left = 'blue'
     color_right = 'red'
-    save_dir = os.path.join('figures/test_output', name)
+    save_dir = os.path.join(current_dir, 'figures/test_output', name)
 
     fig, ax1 = plt.subplots()
 
@@ -115,6 +116,7 @@ def plot_both_parts(wavelength, real, fake, name, interpolate=True):
     ax1.legend(loc='upper left')
     ax1.tick_params(axis='y', labelcolor=color_left)
     ax1.grid()
+    plt.ylim((0, 1))
 
     ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
     ax2.set_ylabel('Fake', color=color_right)  # we already handled the x-label with ax1
@@ -126,6 +128,7 @@ def plot_both_parts(wavelength, real, fake, name, interpolate=True):
     ax2.tick_params(axis='y', labelcolor=color_right)
     ax2.spines['left'].set_color(color_left)
     ax2.spines['right'].set_color(color_right)
+    plt.ylim((0, 1))
     plt.title('Real and Fake')
 
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
@@ -158,6 +161,21 @@ def polar2rect_parallel(modu_que, phase_que):
     return real_que, imag_que
 
 
+def find_spectrum(thickness, radius, TT_array):
+    rows, _ = TT_array.shape
+    wavelength, spectrum = [], []
+    for row in range(rows):
+        if TT_array[row, 1] == thickness and TT_array[row, 2] == radius:
+            wavelength.append(TT_array[row, 0])
+            spectrum.append(TT_array[row, -1])
+        else:
+            continue
+    wavelength = np.array(wavelength)
+    spectrum = np.array(spectrum)
+    index_order = np.argsort(wavelength)
+    return wavelength[index_order], spectrum[index_order]
+
+
 def load_mat(path):
     variables = scio.whosmat(path)
     target = variables[0][0]
@@ -167,10 +185,37 @@ def load_mat(path):
     return TT_list, TT_array
 
 
+def data_pre(list_all, wlimit):
+    dtype = [('wave_length', int), ('thickness', int), ('radius', int), ('efficiency', float)]
+    values = [tuple(single_device) for single_device in list_all]
+    array_temp = np.array(values, dtype)
+    array_all = np.sort(array_temp, order = ['thickness', 'radius', 'wave_length'])
+    
+    thickness_list = np.unique(array_all['thickness'])
+    radius_list = np.unique(array_all['radius'])
+    reformed = []
+
+    for thickness in thickness_list:
+        for radius in radius_list:
+            pick_index = np.intersect1d(np.argwhere(array_all['radius'] == radius), np.argwhere(array_all['thickness'] == thickness))
+            picked = array_all[pick_index]
+            picked = np.sort(picked, order = ['wave_length'])
+            cur_ref = [thickness, radius]
+            for picked_single in picked:
+                cur_ref.append(picked_single[3])
+            
+            # if len(cur_ref) > wlimit + 2:
+            #     cur_ref = cur_ref[0:wlimit + 2]
+
+            reformed.append(cur_ref)
+
+    return np.array(reformed), array_all
+
+
 if __name__ == "__main__":
 
-    current_dir = os.path.abspath(os.path.dirname(__file__))
     data_path = current_dir + '\\data'
+    save_path = current_dir + '\\sorted'
     files = os.listdir(data_path)
 
     data_list_all = []
@@ -178,7 +223,16 @@ if __name__ == "__main__":
     for file in files:
 
         path = os.path.join(data_path, file)
-        data_list = load_mat(path)
+        data_list, _ = load_mat(path)
         data_list_all.extend(data_list)
 
+    data_prepared, data_sorted = data_pre(data_list_all, None)
+    scio.savemat(save_path, {'value': data_prepared})
+
+    # pick_index = np.intersect1d(np.argwhere(data_sorted['radius'] == 20), np.argwhere(data_sorted['thickness'] == 200))
+
+    # picked_data = aray[pick_index]
+
+    # sliced = array_slice(data_sorted)
+    
     print('done')
