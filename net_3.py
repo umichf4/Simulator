@@ -5,7 +5,7 @@ import math
 
 
 class SimulatorNet(nn.Module):
-    def __init__(self):
+    def __init__(self, in_num=2, out_num=28):
         super(SimulatorNet, self).__init__()
         self.FCIN = nn.Sequential(
             # ------------------------------------------------------
@@ -17,7 +17,7 @@ class SimulatorNet(nn.Module):
             nn.BatchNorm1d(2 * 64 * 64),
             nn.LeakyReLU(0.2),
             # ------------------------------------------------------
-            nn.Linear(2, 2 * 64 * 64),
+            nn.Linear(2 * 64 * 64, 2 * 64 * 64),
             nn.BatchNorm1d(2 * 64 * 64),
             nn.LeakyReLU(0.2)
         )
