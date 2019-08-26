@@ -13,7 +13,7 @@ import sys
 current_dir = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(current_dir)
 from torch.utils.data import DataLoader, TensorDataset
-from net_2 import SimulatorNet
+from PeleeNet import PeleeNet
 from utils import *
 from tqdm import tqdm
 from torch.optim import lr_scheduler
@@ -44,7 +44,7 @@ def train_simulator(params):
     np.random.shuffle(TT_array)   
     all_num = TT_array.shape[0]
     TT_tensor = torch.from_numpy(TT_array)
-    TT_tensor = TT_tensor.double()
+    #TT_tensor = TT_tensor.double()
 
     x = TT_tensor[:, :2]
     train_x = x[:int(all_num * params.ratio), :]
@@ -61,8 +61,8 @@ def train_simulator(params):
     valid_loader = DataLoader(dataset=valid_dataset, batch_size=valid_x.shape[0], shuffle=True)
 
     # Net configuration
-    net = SimulatorNet(in_num=params.in_num, out_num=params.out_num)
-    net = net.double()
+    net = PeleeNet(in_num=params.in_num, out_num=params.out_num)
+    #net = net.double()
     net.to(device)
 
     optimizer = torch.optim.SGD(net.parameters(), lr=params.lr)
