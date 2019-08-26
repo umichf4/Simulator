@@ -17,6 +17,7 @@ from PeleeNet import PeleeNet
 from utils import *
 from tqdm import tqdm
 from torch.optim import lr_scheduler
+from scipy import interpolate
 
 
 def train_simulator(params):
@@ -44,29 +45,25 @@ def train_simulator(params):
     np.random.shuffle(TT_array)   
     all_num = TT_array.shape[0]
     TT_tensor = torch.from_numpy(TT_array)
-    #TT_tensor = TT_tensor.double()
+    TT_tensor = TT_tensor.double()
 
-    x = TT_tensor[:, :2]
+    x = TT_tensor
     train_x = x[:int(all_num * params.ratio), :]
     valid_x = x[int(all_num * params.ratio):, :]
 
-    y = TT_tensor[:, 2:]
-    train_y = y[:int(all_num * params.ratio)]
-    valid_y = y[int(all_num * params.ratio):]
-
-    train_dataset = TensorDataset(train_x, train_y)
+    train_dataset = TensorDataset(train_x)
     train_loader = DataLoader(dataset=train_dataset, batch_size=params.batch_size, shuffle=True)
 
-    valid_dataset = TensorDataset(valid_x, valid_y)
+    valid_dataset = TensorDataset(valid_x)
     valid_loader = DataLoader(dataset=valid_dataset, batch_size=valid_x.shape[0], shuffle=True)
 
     # Net configuration
-    net = PeleeNet(in_num=params.in_num, out_num=params.out_num)
-    #net = net.double()
+    net = PeleeNet(num_classes=2)
+    net = net.double()
     net.to(device)
 
-    optimizer = torch.optim.SGD(net.parameters(), lr=params.lr)
-    scheduler = lr_scheduler.StepLR(optimizer, params.step_szie, params.gamma)
+    optimizer = torch.optim.SGD(net.parameters(), lr=params.lr, momentum=0.9)
+    #scheduler = lr_scheduler.StepLR(optimizer, params.step_szie, params.gamma)
 
     criterion = nn.L1Loss()
     train_loss_list, val_loss_list, epoch_list = [], [], []
@@ -81,13 +78,20 @@ def train_simulator(params):
         
         # Train
         net.train()
-        for i, data in enumerate(train_loader):
-            inputs, labels = data
-            inputs, labels = inputs.to(device), labels.to(device)
-
+        for i, data in enumerate(train_loader, 0):
+            inputs = data[0].unsqueeze(1) 
+            inputs_inter = inter(inputs, device)
+            
+            labels = torch.ones(inputs_inter.shape)
+            for index_j, j in enumerate(inputs_inter):
+                for index_jj, jj in enumerate(j):
+                    labels[index_j, index_jj, :] = torch.from_numpy(disc(jj.numpy()))
+                    
+            labels = labels.double().to(device)
+            
             optimizer.zero_grad()
 
-            outputs = net(inputs)
+            outputs = net(inputs_inter)
             train_loss = criterion(outputs, labels)
             train_loss.backward()
 
@@ -99,8 +103,16 @@ def train_simulator(params):
         net.eval()
         val_loss = 0
         for i, data in enumerate(valid_loader):
-            inputs, labels = data
-            inputs, labels = inputs.to(device), labels.to(device)
+            inputs = data[0].unsqueeze(1) 
+            inputs_inter = inter(inputs, device)
+            
+            labels = torch.ones(inputs_inter.shape)
+            for index_j, j in enumerate(inputs_inter):
+                for index_jj, jj in enumerate(j):
+                    labels[index_j, index_jj, :] = torch.from_numpy(disc(jj.numpy()))
+                    
+            labels = labels.double().to(device)
+            
             outputs = net(inputs)
 
             val_loss += criterion(outputs, labels).sum()

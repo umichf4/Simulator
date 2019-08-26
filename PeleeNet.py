@@ -130,6 +130,6 @@ class PeleeNet(nn.Module):
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
-    net = PeleeNet(num_classes=28)
+    net = PeleeNet(num_classes=2)
     net.to(device)
-    torchsummary.summary(net, (1, 2))
+    torchsummary.summary(net, (1, 224))

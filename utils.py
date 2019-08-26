@@ -11,6 +11,7 @@ import cmath
 import numpy as np
 from scipy import interpolate
 import scipy.io as scio
+from scipy import interpolate
 
 current_dir = os.path.abspath(os.path.dirname(__file__))
 
@@ -210,6 +211,22 @@ def data_pre(list_all, wlimit):
             reformed.append(cur_ref)
 
     return np.array(reformed), array_all
+
+def inter(inputs, device):
+    inputs_inter = torch.ones(inputs.shape[0], inputs.shape[1], 224)
+    x = np.linspace(0, 223, num=inputs.shape[2])
+    new_x = np.linspace(0, 223, num=224)
+    
+    for index_j, j in enumerate(inputs):
+        for index_jj, jj in enumerate(j):
+            y = jj
+            f = interpolate.interp1d(x,y,kind='cubic')
+            jj = f(new_x)
+            inputs_inter[index_j, index_jj, :] = torch.from_numpy(jj) 
+            
+    inputs_inter = inputs_inter.double().to(device)
+    
+    return inputs_inter
 
 
 if __name__ == "__main__":
