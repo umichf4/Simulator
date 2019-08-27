@@ -8,26 +8,31 @@ class SimulatorNet(nn.Module):
     def __init__(self, in_num=2, out_num=17):
         super(SimulatorNet, self).__init__()
         self.FC = nn.Sequential(
+             # ------------------------------------------------------
+            nn.Linear(in_num, 5000),
+            nn.BatchNorm1d(5000),
+            nn.ReLU(),
+            nn.Dropout(p=0.2),
             # ------------------------------------------------------
-            nn.Linear(in_num, 1000),
+            nn.Linear(5000, 4000),
+            nn.BatchNorm1d(4000),
+            nn.ReLU(),
+            nn.Dropout(p=0.2),
+            # ------------------------------------------------------
+            nn.Linear(4000, 3000),
+            nn.BatchNorm1d(3000),
+            nn.ReLU(),
+            nn.Dropout(p=0.2),
+            # ------------------------------------------------------
+            nn.Linear(3000, 2000),
+            nn.BatchNorm1d(2000),
+            nn.ReLU(),
+            nn.Dropout(p=0.2),
+            # ------------------------------------------------------
+            nn.Linear(2000, 1000),
             nn.BatchNorm1d(1000),
             nn.ReLU(),
-            # ------------------------------------------------------
-            nn.Linear(1000, 1000),
-            nn.BatchNorm1d(1000),
-            nn.ReLU(),
-            # ------------------------------------------------------
-            nn.Linear(1000, 1000),
-            nn.BatchNorm1d(1000),
-            nn.ReLU(),
-            # ------------------------------------------------------
-            nn.Linear(1000, 1000),
-            nn.BatchNorm1d(1000),
-            nn.ReLU(),
-            # ------------------------------------------------------
-            nn.Linear(1000, 1000),
-            nn.BatchNorm1d(1000),
-            nn.ReLU(),
+            nn.Dropout(p=0.2),
             # ------------------------------------------------------
             nn.Linear(1000, out_num)
         )
