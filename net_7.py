@@ -7,7 +7,7 @@ import math
 class SimulatorNet(nn.Module):
     def __init__(self, in_num=2, out_num=28):
         super(SimulatorNet, self).__init__()
-        self.FC = nn.Sequential(
+        self.FC1 = nn.Sequential(
             # ------------------------------------------------------
             FirstBlinear(in_num, 5000),
             nn.BatchNorm1d(5000),
@@ -32,8 +32,59 @@ class SimulatorNet(nn.Module):
             nn.Linear(1000, out_num)
         )
 
+        self.FC2 = nn.Sequential(
+            # ------------------------------------------------------
+            FirstBlinear(in_num, 4000),
+            nn.BatchNorm1d(4000),
+            nn.ReLU(),
+            # ------------------------------------------------------
+            nn.Linear(4000, 3000),
+            nn.BatchNorm1d(3000),
+            nn.ReLU(),
+            # ------------------------------------------------------
+            nn.Linear(3000, 2000),
+            nn.BatchNorm1d(2000),
+            nn.ReLU(),
+            # ------------------------------------------------------
+            nn.Linear(2000, 1000),
+            nn.BatchNorm1d(1000),
+            nn.ReLU(),
+            # ------------------------------------------------------
+            nn.Linear(1000, out_num)
+        )
+
+        self.FC3 = nn.Sequential(
+            # ------------------------------------------------------
+            FirstBlinear(in_num, 2000),
+            nn.BatchNorm1d(2000),
+            nn.ReLU(),
+            # ------------------------------------------------------
+            nn.Linear(2000, 1000),
+            nn.BatchNorm1d(1000),
+            nn.ReLU(),
+            # ------------------------------------------------------
+            nn.Linear(1000, out_num)
+        )
+
+        self.FC4 = nn.Sequential(
+            # ------------------------------------------------------
+            FirstBlinear(in_num, 2000),
+            nn.BatchNorm1d(2000),
+            nn.ReLU(),
+            # ------------------------------------------------------
+            nn.Linear(2000, 1000),
+            nn.BatchNorm1d(1000),
+            nn.ReLU(),
+            # ------------------------------------------------------
+            nn.Linear(1000, out_num)
+        )
+
     def forward(self, x):
-        x = self.FC(x)
+        p1 = self.FC1(x)
+        p2 = self.FC2(x)
+        p3 = self.FC3(x)
+        p4 = self.FC4(x)
+        x = torch.cat((p1, p2, p3, p4, ))
         return x
 
 
