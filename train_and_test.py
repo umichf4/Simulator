@@ -13,7 +13,7 @@ import sys
 current_dir = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(current_dir)
 from torch.utils.data import DataLoader, TensorDataset
-from net_2 import SimulatorNet
+from net_7 import SimulatorNet
 from utils import *
 from tqdm import tqdm
 from torch.optim import lr_scheduler
@@ -65,10 +65,10 @@ def train_simulator(params):
     net = net.double()
     net.to(device)
 
-    optimizer = torch.optim.SGD(net.parameters(), lr=params.lr)
+    optimizer = torch.optim.Adam(net.parameters(), lr=params.lr)
     scheduler = lr_scheduler.StepLR(optimizer, params.step_szie, params.gamma)
 
-    criterion = nn.L1Loss()
+    criterion = nn.SmoothL1Loss()
     train_loss_list, val_loss_list, epoch_list = [], [], []
 
     if params.restore_from:
@@ -88,7 +88,7 @@ def train_simulator(params):
             optimizer.zero_grad()
 
             outputs = net(inputs)
-            train_loss = criterion(outputs, labels)
+            train_loss = train_loss = criterion(F.interpolate(outputs, 1000, mode='bilinear'), F.interpolate(labels, 1000, mode='bilinear'))
             train_loss.backward()
 
             optimizer.step()
@@ -103,7 +103,8 @@ def train_simulator(params):
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = net(inputs)
 
-            val_loss += criterion(outputs, labels).sum()
+            val_loss += criterion(F.interpolate(outputs, 1000, mode='bilinear'),
+                                  F.interpolate(labels, 1000, mode='bilinear'))
 
         val_loss /= (i + 1)
         val_loss_list.append(val_loss)
@@ -159,8 +160,8 @@ def test_simulator(params):
     if params.restore_from:
         load_checkpoint(os.path.join(current_dir, params.restore_from), net, None)
     net.eval()
-    thickness_all = range(200, 800, 100)
-    radius_all = range(20, 100, 10)
+    thickness_all = range(200, 750, 50)
+    radius_all = range(20, 95, 5)
     spectrum_fake = []
 
     for thickness in thickness_all:
@@ -176,12 +177,13 @@ def test_simulator(params):
             #     input_tensor = torch.from_numpy(np.array(test_data)).double().view(1, -1)
             #     output_tensor = net(input_tensor.to(device))
             #     spectrum_fake.append(output_tensor.view(-1).detach().cpu().numpy())
-
+            if wavelength_real.size == 0 or spectrum_real.size == 0:
+                continue
             test_data = [thickness, radius]
             input_tensor = torch.from_numpy(np.array(test_data)).double().view(1, -1)
             output_tensor = net(input_tensor.to(device))
             spectrum_fake = np.array(output_tensor.view(-1).detach().cpu().numpy()).squeeze()
             plot_both_parts(wavelength_real, spectrum_real, spectrum_fake, str(thickness) + '_' + str(radius) + '.png')
-            print('Single iteration finished \n')
+            print('Single iteration of testing finished \n')
 
     print('Finished Testing \n')
