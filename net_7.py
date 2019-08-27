@@ -84,7 +84,7 @@ class SimulatorNet(nn.Module):
         p2 = self.FC2(x)
         p3 = self.FC3(x)
         p4 = self.FC4(x)
-        x = torch.cat((p1, p2, p3, p4))
+        x = torch.cat((p1, p2, p3, p4), dim=1)
         return x
 
 
