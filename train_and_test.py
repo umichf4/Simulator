@@ -13,7 +13,7 @@ import sys
 current_dir = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(current_dir)
 from torch.utils.data import DataLoader, TensorDataset
-from net_7 import SimulatorNet
+from net_2 import SimulatorNet
 from utils import *
 from tqdm import tqdm
 from torch.optim import lr_scheduler
@@ -65,10 +65,10 @@ def train_simulator(params):
     net = net.double()
     net.to(device)
 
-    optimizer = torch.optim.Adam(net.parameters(), lr=params.lr)
+    optimizer = torch.optim.SGD(net.parameters(), lr=params.lr)
     scheduler = lr_scheduler.StepLR(optimizer, params.step_szie, params.gamma)
 
-    criterion = nn.SmoothL1Loss()
+    criterion = nn.L1Loss()
     train_loss_list, val_loss_list, epoch_list = [], [], []
 
     if params.restore_from:
@@ -88,7 +88,7 @@ def train_simulator(params):
             optimizer.zero_grad()
 
             outputs = net(inputs)
-            train_loss = train_loss = criterion(F.interpolate(outputs, 1000, mode='bilinear'), F.interpolate(labels, 1000, mode='bilinear'))
+            train_loss = criterion(outputs, labels)
             train_loss.backward()
 
             optimizer.step()
@@ -103,8 +103,7 @@ def train_simulator(params):
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = net(inputs)
 
-            val_loss += criterion(F.interpolate(outputs, 1000, mode='bilinear'),
-                                  F.interpolate(labels, 1000, mode='bilinear'))
+            val_loss += criterion(outputs, labels).sum()
 
         val_loss /= (i + 1)
         val_loss_list.append(val_loss)
