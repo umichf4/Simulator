@@ -228,7 +228,12 @@ def inter(inputs, device):
     
     return inputs_inter
 
-
+def disc(in_data, net, device):
+    outputs = net(in_data)
+    
+    outputs = outputs.double().to(device)
+    return outputs
+    
 if __name__ == "__main__":
 
     data_path = current_dir + '\\data'

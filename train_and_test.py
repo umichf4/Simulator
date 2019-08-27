@@ -14,6 +14,7 @@ current_dir = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(current_dir)
 from torch.utils.data import DataLoader, TensorDataset
 from PeleeNet import PeleeNet
+from net_2 import SimulatorNet
 from utils import *
 from tqdm import tqdm
 from torch.optim import lr_scheduler
@@ -48,8 +49,8 @@ def train_simulator(params):
     TT_tensor = TT_tensor.double()
 
     x = TT_tensor
-    train_x = x[:int(all_num * params.ratio), :]
-    valid_x = x[int(all_num * params.ratio):, :]
+    train_x = x[:int(all_num * params.ratio), 2:]
+    valid_x = x[int(all_num * params.ratio):, 2:]
 
     train_dataset = TensorDataset(train_x)
     train_loader = DataLoader(dataset=train_dataset, batch_size=params.batch_size, shuffle=True)
@@ -61,16 +62,21 @@ def train_simulator(params):
     net = PeleeNet(num_classes=2)
     net = net.double()
     net.to(device)
-
+    
+    net_s = SimulatorNet(in_num=params.in_num, out_num=params.out_num)
+    net_s = net_s.double()
+    net_s.to(device)
+    
     optimizer = torch.optim.SGD(net.parameters(), lr=params.lr, momentum=0.9)
     #scheduler = lr_scheduler.StepLR(optimizer, params.step_szie, params.gamma)
 
     criterion = nn.L1Loss()
     train_loss_list, val_loss_list, epoch_list = [], [], []
 
-    if params.restore_from:
-        load_checkpoint(params.restore_from, net, optimizer)
-
+#    if params.restore_from:
+#        load_checkpoint(params.restore_from, net, optimizer)        
+    load_checkpoint(params.restore_from, net_s, None)
+    
     # Start training
     for k in range(params.epochs):
         epoch = k + 1
@@ -82,20 +88,18 @@ def train_simulator(params):
             inputs = data[0].unsqueeze(1) 
             inputs_inter = inter(inputs, device)
             
-            labels = torch.ones(inputs_inter.shape)
-            for index_j, j in enumerate(inputs_inter):
-                for index_jj, jj in enumerate(j):
-                    labels[index_j, index_jj, :] = torch.from_numpy(disc(jj.numpy()))
-                    
-            labels = labels.double().to(device)
-            
             optimizer.zero_grad()
 
-            outputs = net(inputs_inter)
-            train_loss = criterion(outputs, labels)
+            outputs = net(inputs_inter)     
+            
+            optimizer.step()
+            
+            labels = disc(outputs, net_s, device)
+            
+            inputs = inputs.squeeze(1)
+            train_loss = criterion(inputs.to(device), labels)
             train_loss.backward()
 
-            optimizer.step()
 
         train_loss_list.append(train_loss)
 
@@ -106,24 +110,20 @@ def train_simulator(params):
             inputs = data[0].unsqueeze(1) 
             inputs_inter = inter(inputs, device)
             
-            labels = torch.ones(inputs_inter.shape)
-            for index_j, j in enumerate(inputs_inter):
-                for index_jj, jj in enumerate(j):
-                    labels[index_j, index_jj, :] = torch.from_numpy(disc(jj.numpy()))
-                    
-            labels = labels.double().to(device)
+            outputs = net(inputs_inter)
             
-            outputs = net(inputs)
-
-            val_loss += criterion(outputs, labels).sum()
+            labels = disc(outputs, net_s, device)
+            
+            inputs = inputs.squeeze(1)
+            val_loss += criterion(inputs.to(device), labels).sum()
 
         val_loss /= (i + 1)
         val_loss_list.append(val_loss)
 
-        print('Epoch=%d  train_loss: %.7f valid_loss: %.7f lr: %.7f' %
-              (epoch, train_loss, val_loss, scheduler.get_lr()[0]))
+        print('Epoch=%d  train_loss: %.7f valid_loss: %.7f ' %
+              (epoch, train_loss, val_loss))
         
-        scheduler.step()
+        #scheduler.step()
         
         # Update Visualization
         if viz.check_connection():
