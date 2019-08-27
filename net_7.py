@@ -50,7 +50,7 @@ class SimulatorNet(nn.Module):
             nn.BatchNorm1d(1000),
             nn.ReLU(),
             # ------------------------------------------------------
-            nn.Linear(1000, out_num)
+            nn.Linear(1000, int(out_num / 4))
         )
 
         self.FC3 = nn.Sequential(
@@ -63,7 +63,7 @@ class SimulatorNet(nn.Module):
             nn.BatchNorm1d(1000),
             nn.ReLU(),
             # ------------------------------------------------------
-            nn.Linear(1000, out_num)
+            nn.Linear(1000, int(out_num / 4))
         )
 
         self.FC4 = nn.Sequential(
@@ -76,7 +76,7 @@ class SimulatorNet(nn.Module):
             nn.BatchNorm1d(1000),
             nn.ReLU(),
             # ------------------------------------------------------
-            nn.Linear(1000, out_num)
+            nn.Linear(1000, int(out_num / 4))
         )
 
     def forward(self, x):
@@ -84,7 +84,7 @@ class SimulatorNet(nn.Module):
         p2 = self.FC2(x)
         p3 = self.FC3(x)
         p4 = self.FC4(x)
-        x = torch.cat((p1, p2, p3, p4, ))
+        x = torch.cat((p1, p2, p3, p4))
         return x
 
 
