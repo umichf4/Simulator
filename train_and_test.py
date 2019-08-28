@@ -159,23 +159,14 @@ def test_simulator(params):
     if params.restore_from:
         load_checkpoint(os.path.join(current_dir, params.restore_from), net, None)
     net.eval()
-    thickness_all = range(200, 750, 50)
-    radius_all = range(20, 95, 5)
+    thickness_all = range(200, 750, 1)
+    radius_all = range(20, 95, 1)
     spectrum_fake = []
-
+    device_num = 0
     for thickness in thickness_all:
         for radius in radius_all:
-
+            device_num += 1
             wavelength_real, spectrum_real = find_spectrum(thickness, radius, TT_array)
-            # if len(wavelength_real) > params.wlimit:
-            #     wavelength_real = wavelength_real[0:params.wlimit]
-            #     spectrum_real = spectrum_real[0:params.wlimit]
-            
-            # for wavelength in wavelength_real:
-            #     test_data = [wavelength, thickness, radius]
-            #     input_tensor = torch.from_numpy(np.array(test_data)).double().view(1, -1)
-            #     output_tensor = net(input_tensor.to(device))
-            #     spectrum_fake.append(output_tensor.view(-1).detach().cpu().numpy())
             if wavelength_real.size == 0 or spectrum_real.size == 0:
                 continue
             test_data = [thickness, radius]
@@ -183,6 +174,5 @@ def test_simulator(params):
             output_tensor = net(input_tensor.to(device))
             spectrum_fake = np.array(output_tensor.view(-1).detach().cpu().numpy()).squeeze()
             plot_both_parts(wavelength_real, spectrum_real, spectrum_fake, str(thickness) + '_' + str(radius) + '.png')
-            print('Single iteration of testing finished \n')
-
+            print('Testing of device #%d finished \n' %(device_num))
     print('Finished Testing \n')
