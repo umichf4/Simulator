@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-# @Author: Brandon Han
-# @Date:   2019-08-17 15:20:26
-# @Last Modified by:   BrandonHanx
-# @Last Modified time: 2019-08-20 18:20:15
 
 import torch
 import torch.nn as nn
@@ -13,15 +9,18 @@ import sys
 current_dir = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(current_dir)
 from torch.utils.data import DataLoader, TensorDataset
-from net_2 import SimulatorNet
+from net import SimulatorNet
 from utils import *
 from tqdm import tqdm
 from torch.optim import lr_scheduler
-
+import torch.nn.functional as F
+from torch.autograd import Variable
 
 def train_simulator(params):
     # Device configuration
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda:0' if params.cuda else 'cpu')
+    torch.set_default_tensor_type(torch.cuda.FloatTensor if params.cuda else torch.FloatTensor)
+
     print('Training starts, using %s' % (device))
 
     # Visualization configuration
@@ -43,14 +42,13 @@ def train_simulator(params):
 
     np.random.shuffle(TT_array)   
     all_num = TT_array.shape[0]
-    TT_tensor = torch.from_numpy(TT_array)
-    TT_tensor = TT_tensor.double()
+    TT_tensor = torch.from_numpy(TT_array).double()
 
-    x = TT_tensor[:, :2]
+    x = TT_tensor[:, :3]
     train_x = x[:int(all_num * params.ratio), :]
     valid_x = x[int(all_num * params.ratio):, :]
 
-    y = TT_tensor[:, 2:]
+    y = TT_tensor[:, 3:]
     train_y = y[:int(all_num * params.ratio)]
     valid_y = y[int(all_num * params.ratio):]
 
@@ -72,7 +70,7 @@ def train_simulator(params):
     train_loss_list, val_loss_list, epoch_list = [], [], []
 
     if params.restore_from:
-        load_checkpoint(params.restore_from, net, optimizer)
+        load_checkpoint(os.path.join(current_dir, params.restore_from), net, optimizer)
 
     # Start training
     for k in range(params.epochs):
@@ -98,12 +96,13 @@ def train_simulator(params):
         # Validation
         net.eval()
         val_loss = 0
-        for i, data in enumerate(valid_loader):
-            inputs, labels = data
-            inputs, labels = inputs.to(device), labels.to(device)
-            outputs = net(inputs)
+        with torch.no_grad():
+            for i, data in enumerate(valid_loader):
+                inputs, labels = data
+                inputs, labels = inputs.to(device), labels.to(device)
+                outputs = net(inputs)
 
-            val_loss += criterion(outputs, labels).sum()
+                val_loss += criterion(outputs, labels).sum()
 
         val_loss /= (i + 1)
         val_loss_list.append(val_loss)
@@ -145,7 +144,7 @@ def train_simulator(params):
 
 def test_simulator(params):
     # Device configuration
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda:0' if params.cuda else 'cpu')
     print('Test starts, using %s' % (device))
 
     # Visualization configuration
@@ -159,20 +158,22 @@ def test_simulator(params):
     if params.restore_from:
         load_checkpoint(os.path.join(current_dir, params.restore_from), net, None)
     net.eval()
-    thickness_all = range(200, 750, 1)
-    radius_all = range(20, 95, 1)
+    thickness_all = range(200, 750, 50)
+    radius_all = range(20, 95, 5)
+    gap_all = range(200, 405, 5)
     spectrum_fake = []
-    device_num = 0
+    device_num = 1
     for thickness in thickness_all:
         for radius in radius_all:
-            device_num += 1
-            wavelength_real, spectrum_real = find_spectrum(thickness, radius, TT_array)
-            if wavelength_real.size == 0 or spectrum_real.size == 0:
-                continue
-            test_data = [thickness, radius]
-            input_tensor = torch.from_numpy(np.array(test_data)).double().view(1, -1)
-            output_tensor = net(input_tensor.to(device))
-            spectrum_fake = np.array(output_tensor.view(-1).detach().cpu().numpy()).squeeze()
-            plot_both_parts(wavelength_real, spectrum_real, spectrum_fake, str(thickness) + '_' + str(radius) + '.png')
-            print('Testing of device #%d finished \n' %(device_num))
+            for gap in gap_all:
+                wavelength_real, spectrum_real = find_spectrum(thickness, radius, gap, TT_array)
+                if wavelength_real.size == 0 or spectrum_real.size == 0:
+                    continue
+                test_data = [thickness, radius, gap]
+                input_tensor = torch.from_numpy(np.array(test_data)).double().view(1, -1)
+                output_tensor = net(input_tensor.to(device))
+                spectrum_fake = np.array(output_tensor.view(-1).detach().cpu().numpy()).squeeze()
+                plot_both_parts(wavelength_real, spectrum_real, spectrum_fake, str(thickness) + '_' + str(radius) + '_' + str(gap) + '.png')
+                print('Testing of device #%d finished \n' %(device_num))
+                device_num += 1
     print('Finished Testing \n')
