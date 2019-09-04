@@ -31,7 +31,7 @@ def diff_tensor(a):
 def train_simulator(params):
     # Device configuration
     device = torch.device('cuda:0' if params.cuda else 'cpu')
-    torch.set_default_tensor_type(torch.cuda.FloatTensor if params.cuda else torch.FloatTensor)
+    torch.set_default_tensor_type(torch.cuda.DoubleTensor if params.cuda else torch.DoubleTensor)
 
     print('Training starts, using %s' % (device))
 
@@ -102,7 +102,7 @@ def train_simulator(params):
                                    F.interpolate(labels.view(-1, 1, params.out_num), 100, mode='linear')) + \
                 criterion(F.interpolate(diff_tensor(outputs.squeeze(1)).view(-1, 1, params.out_num - 1), 100, mode='linear'),
                           F.interpolate(diff_tensor(labels.squeeze(1)).view(-1, 1, params.out_num - 1), 100, mode='linear'))
-            train_loss = train_loss.float()
+            train_loss = train_loss
             train_loss.backward()
 
             optimizer.step()

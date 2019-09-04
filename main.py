@@ -6,7 +6,7 @@ import sys
 current_dir = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(current_dir)
 import json
-from train_and_test import train_simulator, test_simulator
+from train_and_test_2 import train_simulator, test_simulator
 from utils import Params
 import warnings
 warnings.filterwarnings('ignore')
