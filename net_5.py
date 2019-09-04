@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch
 
 
-class GeneratorNet(nn.Module):
+class SimulatorNet(nn.Module):
     def __init__(self, in_num=3, out_num=29, d=64):
         super().__init__()
         self.in_num = in_num
