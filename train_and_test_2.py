@@ -102,7 +102,7 @@ def train_simulator(params):
                                    F.interpolate(labels.view(-1, 1, params.out_num), 100, mode='linear')) + \
                 criterion(F.interpolate(diff_tensor(outputs.squeeze(1)).view(-1, 1, params.out_num - 1), 100, mode='linear'),
                           F.interpolate(diff_tensor(labels.squeeze(1)).view(-1, 1, params.out_num - 1), 100, mode='linear'))
-
+            train_loss = train_loss.float()
             train_loss.backward()
 
             optimizer.step()
@@ -112,15 +112,16 @@ def train_simulator(params):
         # Validation
         net.eval()
         val_loss = 0
-        for i, data in enumerate(valid_loader):
-            inputs, labels = data
-            inputs, labels = inputs.to(device), labels.to(device)
-            outputs = net(inputs)
+        with torch.no_grad():
+            for i, data in enumerate(valid_loader):
+                inputs, labels = data
+                inputs, labels = inputs.to(device), labels.to(device)
+                outputs = net(inputs)
 
-            val_loss += criterion(F.interpolate(outputs.view(-1, 1, params.out_num), 100, mode='linear'),
-                                  F.interpolate(labels.view(-1, 1, params.out_num), 100, mode='linear')) + \
-                criterion(F.interpolate(diff_tensor(outputs.squeeze(1)).view(-1, 1, params.out_num - 1), 100, mode='linear'),
-                          F.interpolate(diff_tensor(labels.squeeze(1)).view(-1, 1, params.out_num - 1), 100, mode='linear'))
+                val_loss += criterion(F.interpolate(outputs.view(-1, 1, params.out_num), 100, mode='linear'),
+                                    F.interpolate(labels.view(-1, 1, params.out_num), 100, mode='linear')) + \
+                    criterion(F.interpolate(diff_tensor(outputs.squeeze(1)).view(-1, 1, params.out_num - 1), 100, mode='linear'),
+                            F.interpolate(diff_tensor(labels.squeeze(1)).view(-1, 1, params.out_num - 1), 100, mode='linear'))
 
         val_loss /= (i + 1)
         val_loss_list.append(val_loss)
