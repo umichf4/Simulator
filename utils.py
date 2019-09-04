@@ -201,7 +201,8 @@ def data_pre(list_all, wlimit):
         for radius in radius_list:
             for gap in gap_list:
                 pick_index = np.intersect1d(np.argwhere(array_all['radius'] == radius), np.argwhere(
-                    array_all['thickness'] == thickness), np.argwhere(array_all['gap'] == gap))
+                    array_all['thickness'] == thickness))
+                pick_index = np.intersect1d(pick_index, np.argwhere(array_all['gap'] == gap))
                 picked = array_all[pick_index]
                 picked = np.sort(picked, order=['wave_length'])
                 cur_ref = [thickness, radius, gap]

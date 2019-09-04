@@ -11,7 +11,7 @@ import math
 
 
 class SimulatorNet(nn.Module):
-    def __init__(self, in_num=3, out_num=32):
+    def __init__(self, in_num=3, out_num=29):
         super(SimulatorNet, self).__init__()
         self.FC = nn.Sequential(
             # ------------------------------------------------------
