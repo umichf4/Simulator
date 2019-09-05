@@ -71,7 +71,6 @@ class SimulatorNet(nn.Module):
     def forward(self, net):
         net = net.view(-1, self.in_num, 1)
         net = self.deconv_block(net)
-        print(net.size())
         net = net.view(net.size(0), -1)
         net = self.fc_block(net)
 

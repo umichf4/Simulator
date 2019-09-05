@@ -9,7 +9,7 @@ import sys
 current_dir = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(current_dir)
 from torch.utils.data import DataLoader, TensorDataset
-from net import SimulatorNet
+from net_5 import SimulatorNet
 from utils import *
 from tqdm import tqdm
 from torch.optim import lr_scheduler
@@ -98,10 +98,9 @@ def train_simulator(params):
             optimizer.zero_grad()
 
             outputs = net(inputs)
-            train_loss = criterion(F.interpolate(outputs.view(-1, 1, params.out_num), 100, mode='linear'),
-                                   F.interpolate(labels.view(-1, 1, params.out_num), 100, mode='linear')) + \
-                criterion(F.interpolate(diff_tensor(outputs.squeeze(1)).view(-1, 1, params.out_num - 1), 100, mode='linear'),
-                          F.interpolate(diff_tensor(labels.squeeze(1)).view(-1, 1, params.out_num - 1), 100, mode='linear'))
+            train_loss = criterion(outputs.view(-1, 1, params.out_num), labels.view(-1, 1, params.out_num)) + \
+                         params.coef * criterion(diff_tensor(outputs.squeeze(1)).view(-1, 1, params.out_num - 1),
+                         diff_tensor(labels.squeeze(1)).view(-1, 1, params.out_num - 1))
             train_loss = train_loss
             train_loss.backward()
 
@@ -118,10 +117,9 @@ def train_simulator(params):
                 inputs, labels = inputs.to(device), labels.to(device)
                 outputs = net(inputs)
 
-                val_loss += criterion(F.interpolate(outputs.view(-1, 1, params.out_num), 100, mode='linear'),
-                                    F.interpolate(labels.view(-1, 1, params.out_num), 100, mode='linear')) + \
-                    criterion(F.interpolate(diff_tensor(outputs.squeeze(1)).view(-1, 1, params.out_num - 1), 100, mode='linear'),
-                            F.interpolate(diff_tensor(labels.squeeze(1)).view(-1, 1, params.out_num - 1), 100, mode='linear'))
+                val_loss += criterion(outputs.view(-1, 1, params.out_num), labels.view(-1, 1, params.out_num)) + \
+                            params.coef * criterion(diff_tensor(outputs.squeeze(1)).view(-1, 1, params.out_num - 1),
+                            diff_tensor(labels.squeeze(1)).view(-1, 1, params.out_num - 1))
 
         val_loss /= (i + 1)
         val_loss_list.append(val_loss)

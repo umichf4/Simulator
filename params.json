@@ -11,5 +11,6 @@
     "lr": 0.1,
     "step_szie": 50,
     "gamma": 0.5,
-    "save_epoch": 50
+    "save_epoch": 50,
+    "coef": 5
 }
