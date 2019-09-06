@@ -46,7 +46,7 @@ class SimulatorNet(nn.Module):
             nn.LeakyReLU(0.2),
             # ------------------------------------------------------
             nn.ConvTranspose1d(int(d / 16), int(d / 32), 4, 2, 1),
-             nn.BatchNorm1d(int(d / 32)),
+            nn.BatchNorm1d(int(d / 32)),
             nn.LeakyReLU(0.2),
             # ------------------------------------------------------
             nn.ConvTranspose1d(int(d / 32), int(d / 64), 4, 2, 1),
@@ -65,7 +65,7 @@ class SimulatorNet(nn.Module):
             nn.LeakyReLU(0.2),
             # ------------------------------------------------------
             nn.Linear(1000, out_num),
-            nn.ReLU6()
+            nn.LeakyReLU(0.2)
         )
 
     def forward(self, net):
