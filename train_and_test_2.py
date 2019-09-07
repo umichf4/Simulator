@@ -126,8 +126,8 @@ def train_simulator(params):
         val_loss /= (i + 1)
         val_loss_list.append(val_loss)
 
-        print('Epoch=%d  train_loss: %.7f valid_loss: %.7f lr: %.7f' %
-              (epoch, train_loss, val_loss, scheduler.get_lr()[0]))
+        print('Epoch=%d  train_loss: %.7f valid_loss: %.7f' %
+              (epoch, train_loss, val_loss))
 
         # scheduler.step()
 
