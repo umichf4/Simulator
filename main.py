@@ -6,7 +6,7 @@ import sys
 current_dir = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(current_dir)
 import json
-from train_and_test_3 import train_simulator, test_simulator
+from train_and_test_2 import train_simulator, test_simulator
 from utils import Params
 import warnings
 warnings.filterwarnings('ignore')
@@ -15,10 +15,10 @@ import torch
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--save_model_dir', default='models', type=str)
-# parser.add_argument('--restore_from', default='models\\Epoch250.pth', type=str)
+# parser.add_argument('--restore_from', default='models/Epoch250.pth', type=str)
 parser.add_argument('--restore_from', default=None, type=str)
 parser.add_argument('--json_path', default='params.json', type=str)
-parser.add_argument('--T_path', default='data\\circle_Si.mat', type=str)
+parser.add_argument('--T_path', default='data/circle_Si.mat', type=str)
 parser.add_argument('--test', action='store_true', default=False)
 parser.add_argument('--freeze', action='store_true', default=False)
 args = parser.parse_args()

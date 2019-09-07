@@ -56,16 +56,11 @@ class SimulatorNet(nn.Module):
 
         self.fc_block = nn.Sequential(
             # ------------------------------------------------------
-            nn.Linear(2048, 2000),
-            nn.BatchNorm1d(2000),
-            nn.LeakyReLU(0.2),
-            # ------------------------------------------------------
-            nn.Linear(2000, 1000),
+            nn.Linear(2048, 1000),
             nn.BatchNorm1d(1000),
             nn.LeakyReLU(0.2),
             # ------------------------------------------------------
-            nn.Linear(1000, out_num),
-            nn.LeakyReLU(0.2)
+            nn.Linear(1000, out_num)
         )
 
     def forward(self, net):

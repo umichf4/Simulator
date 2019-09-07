@@ -9,7 +9,7 @@ import sys
 current_dir = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(current_dir)
 from torch.utils.data import DataLoader, TensorDataset
-from net import SimulatorNet
+from net_5 import SimulatorNet
 from utils import *
 from tqdm import tqdm
 from torch.optim import lr_scheduler
@@ -75,10 +75,10 @@ def train_simulator(params):
     net = net.double()
     net.to(device)
 
-    optimizer = torch.optim.SGD(net.parameters(), lr=params.lr)
-    scheduler = lr_scheduler.StepLR(optimizer, params.step_szie, params.gamma)
+    optimizer = torch.optim.Adam(net.parameters())
+    # scheduler = lr_scheduler.StepLR(optimizer, params.step_szie, params.gamma)
 
-    criterion = nn.L1Loss()
+    criterion = nn.MSELoss()
     train_loss_list, val_loss_list, epoch_list = [], [], []
 
     if params.restore_from:
@@ -129,8 +129,7 @@ def train_simulator(params):
         print('Epoch=%d  train_loss: %.7f valid_loss: %.7f lr: %.7f' %
               (epoch, train_loss, val_loss, scheduler.get_lr()[0]))
 
-
-        scheduler.step()
+        # scheduler.step()
 
         # Update Visualization
         if viz.check_connection():
