@@ -98,10 +98,9 @@ def train_simulator(params):
             optimizer.zero_grad()
 
             outputs = net(inputs)
-            train_loss = criterion(outputs.view(-1, 1, params.out_num), labels.view(-1, 1, params.out_num)) + \
+            train_loss = criterion(outputs, labels) + \
                          params.coef * criterion(diff_tensor(outputs.squeeze(1)).view(-1, 1, params.out_num - 1),
                          diff_tensor(labels.squeeze(1)).view(-1, 1, params.out_num - 1))
-            train_loss = train_loss
             train_loss.backward()
 
             optimizer.step()
@@ -117,7 +116,7 @@ def train_simulator(params):
                 inputs, labels = inputs.to(device), labels.to(device)
                 outputs = net(inputs)
 
-                val_loss += criterion(outputs.view(-1, 1, params.out_num), labels.view(-1, 1, params.out_num)) + \
+                val_loss += criterion(outputs, labels)+ \
                             params.coef * criterion(diff_tensor(outputs.squeeze(1)).view(-1, 1, params.out_num - 1),
                             diff_tensor(labels.squeeze(1)).view(-1, 1, params.out_num - 1))
 
